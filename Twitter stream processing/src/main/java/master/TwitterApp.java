@@ -7,7 +7,10 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 
+
 public class TwitterApp {
+	
+	public static final String KAFKA_TOPIC = "TWITTER_GENERAL";
 	public static void main(String[] args) {
 		
 		if(args.length!=7){
@@ -25,7 +28,7 @@ public class TwitterApp {
 		
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 		
-		int mode;
+		int mode = 0;
 		try{
 			mode = Integer.parseInt(args[0]);
 		} catch(NumberFormatException e){
@@ -42,14 +45,5 @@ public class TwitterApp {
 			break;
 		}
 		
-		
-		System.out.println("Simple Twitter App with param "+args[0]);
-		
-		try {
-			new TweetReader();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

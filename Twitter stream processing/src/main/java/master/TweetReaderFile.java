@@ -19,6 +19,6 @@ public class TweetReaderFile {
 		
 		String tweet = "";
 		
-		producer.send(new ProducerRecord<K, V>(topic, tweet));
+		producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, tweet));
 	}
 }
