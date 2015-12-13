@@ -18,7 +18,7 @@ public class TwitterApp {
 		}
 		
 		Properties props = new Properties();
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,args[6]);
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,args[5]);
 		props.put(ProducerConfig.RETRIES_CONFIG, "3");
 		props.put(ProducerConfig.ACKS_CONFIG, "all");
 		props.put(ProducerConfig.BATCH_SIZE_CONFIG, 200);

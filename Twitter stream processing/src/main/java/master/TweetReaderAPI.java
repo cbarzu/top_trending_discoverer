@@ -28,9 +28,11 @@ public class TweetReaderAPI extends Thread {
 		service = new ServiceBuilder().provider(TwitterApi.class).apiKey(apiKey).apiSecret(apiSecret).build();
 		accessToken = new Token(tokenValue,tokenSecret);
 		producer = prod;
+		
+		readTweetsFromApi();
 	}
 	
-	  public void run(){
+	  public void readTweetsFromApi(){
 	        try{
 	        	log.info("Starting Twitter public stream consumer thread.");
 
@@ -52,7 +54,7 @@ public class TweetReaderAPI extends Thread {
 	            String line;
 	            while ((line = reader.readLine()) != null) {
 	            	producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, line));
-	                System.out.println(line);
+	                //System.out.println(line);
 	            }
 	        }
 	        catch (IOException ioe){
