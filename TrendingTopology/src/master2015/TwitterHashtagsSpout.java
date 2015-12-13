@@ -1,9 +1,14 @@
 package master2015;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -20,15 +25,17 @@ import kafka.javaapi.consumer.ConsumerConnector;
 public class TwitterHashtagsSpout extends BaseRichSpout {
 	private SpoutOutputCollector collector;
 	private String zookeeper_url;
-	
-	public static final String TWEET_FIELD_NAME = "TweetName";
-	public static final String TWEET_FIELD_VALUE = "TweetValue";
-	public static final String KAFKA_TOPIC = "Hashtags Topic";
+	private Set<String> languagesSet;
 
-	public TwitterHashtagsSpout(String zookeeper_url) {
-		this.zookeeper_url=zookeeper_url;
+	public static final String LANG_FIELD = "lang";
+	public static final String HASHTAGS_FIELD = "hashtags";
+	public static final String KAFKA_TOPIC = "TWITTER_GENERAL";
+
+	public TwitterHashtagsSpout(String zookeeper_url, Set<String> languages) {
+		this.zookeeper_url = zookeeper_url;
+		this.languagesSet = languages;
 	}
-	
+
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
@@ -37,7 +44,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 	@Override
 	public void nextTuple() {
-		//GROUP ID????
+		// GROUP ID????
 		ConsumerConnector kafkaConsumer = Consumer
 				.createJavaConsumerConnector(this.createConsumerConfig(this.zookeeper_url, "1"));
 
@@ -49,11 +56,28 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 		ConsumerIterator<byte[], byte[]> it = streams.get(0).iterator();
 
+		ObjectMapper om = new ObjectMapper();
+		JsonNode rootNode;
+
 		while (it.hasNext()) {
-			String s = new String(it.next().message());
-			String[] fields = s.split("#");
-			Values value = new Values(fields[0], fields[1]);
-			collector.emit(Top3App.TWITTER_OUTSTREAM, value);
+			try {
+				rootNode = om.readValue(it.next().message(), JsonNode.class);
+
+				String hashtagsList = "";
+
+				for (JsonNode node : rootNode.path("hashtags")) {
+					hashtagsList = hashtagsList + node.get("text").toString() + "#";
+				}
+
+				String lang = rootNode.get("lang").toString();
+
+				if(languagesSet.contains(lang)){
+					Values value = new Values(lang, hashtagsList);
+					collector.emit(Top3App.TWITTER_OUTSTREAM, value);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		// Blocking method
@@ -69,15 +93,15 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 		 */
 	}
 
-	/*private Values randomValue() {
-		double value = Math.random() * 100;
-		return new Values(AvailableCurrencyUtils.getRandomCurrency(), value);
-	}*/
+	/*
+	 * private Values randomValue() { double value = Math.random() * 100; return
+	 * new Values(AvailableCurrencyUtils.getRandomCurrency(), value); }
+	 */
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declareStream(Top3App.TWITTER_OUTSTREAM,
-				new Fields(TwitterHashtagsSpout.TWEET_FIELD_NAME, TwitterHashtagsSpout.TWEET_FIELD_VALUE));
+				new Fields(TwitterHashtagsSpout.LANG_FIELD, TwitterHashtagsSpout.HASHTAGS_FIELD));
 
 	}
 

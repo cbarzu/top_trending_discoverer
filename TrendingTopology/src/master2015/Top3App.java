@@ -1,10 +1,14 @@
 package master2015;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 
 /**
  * TODO
@@ -45,11 +49,22 @@ public class Top3App {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 		
-		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1]));
-		
 		//Indicar el tipo de stream grouping deseado (shuffle, fields, all, custom, direct, global)
-		builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt()).localOrShuffleGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM);
+		//builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt()).localOrShuffleGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM);
 
+		//Create as many bolts as languages
+		Set<String> languagesSet = new HashSet<String>();
+		String[] languagesString = args[0].split(",");
+		
+		for(String l : languagesString){
+			languagesSet.add(l);
+		}
+		
+		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1],languagesSet));
+		
+		for(int i=0; i<languagesString.length; i++){
+			builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt()).fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
+		}
 		
 		//LocalCluster cluster = new LocalCluster();
 		//cluster.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
