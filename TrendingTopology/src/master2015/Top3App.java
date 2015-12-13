@@ -4,9 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import backtype.storm.Config;
-import backtype.storm.StormSubmitter;
-import backtype.storm.generated.AlreadyAliveException;
-import backtype.storm.generated.InvalidTopologyException;
+import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
@@ -61,14 +59,16 @@ public class Top3App {
 		}
 		
 		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1],languagesSet));
+		int i=0;
+		//for(int i=0; i<languagesString.length; i++){
+			//builder.setBolt(Top3App.BOLT_ID+i, new TwitterHashtagsBolt(i,args[4])).fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 		
-		for(int i=0; i<languagesString.length; i++){
-			builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt()).fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
-		}
+		builder.setBolt(Top3App.BOLT_ID+i, new TwitterHashtagsBolt(i,args[4])).localOrShuffleGrouping(Top3App.TWITTER_OUTSTREAM);
+		//}
 		
-		//LocalCluster cluster = new LocalCluster();
-		//cluster.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
-		try {
+		LocalCluster cluster = new LocalCluster();
+		cluster.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
+		/*try {
 			StormSubmitter.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
 		} catch (AlreadyAliveException e) {
 			// TODO Auto-generated catch block
@@ -76,7 +76,7 @@ public class Top3App {
 		} catch (InvalidTopologyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
 	}
 	

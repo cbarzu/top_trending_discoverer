@@ -71,15 +71,14 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 				String lang = rootNode.get("lang").toString();
 
-				if(languagesSet.contains(lang)){
+				//if(languagesSet.contains(lang)){
 					Values value = new Values(lang, hashtagsList);
 					collector.emit(Top3App.TWITTER_OUTSTREAM, value);
-				}
+				//}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
 		// Blocking method
 		/*
 		 * while(it.hasNext()){ System.out.println("Received: "+new

@@ -1,5 +1,9 @@
 package master2015;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 
 import backtype.storm.task.OutputCollector;
@@ -10,8 +14,33 @@ import backtype.storm.tuple.Tuple;
 
 public class TwitterHashtagsBolt extends BaseRichBolt{
 
+	//private BufferedWriter writer;
+	
+	public TwitterHashtagsBolt(long boltId, String path) {
+		//File file = new File(path+"/result"+boltId+".txt");
+		
+		/*try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
+	
 	@Override
 	public void execute(Tuple input) {
+		String hashtagsList = (String)input.getValueByField(TwitterHashtagsSpout.HASHTAGS_FIELD);
+		String[] hashtags = hashtagsList.split("#");
+		for(String ht : hashtags){
+			/*try {
+				this.writer.write(ht);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+			
+			System.out.println(ht);
+		}
 		/*Currency currencyID = (Currency) input.getValueByField(CurrencySpout.CURRENCYFIELDNAME);
 		double valueField = (Double) input.getValueByField(CurrencySpout.CURRENCYFIELDVALUE);
 		double rate = AvailableCurrencyUtils.getRate(currencyID);
@@ -21,7 +50,7 @@ public class TwitterHashtagsBolt extends BaseRichBolt{
 
 	@Override
 	public void prepare(Map arg0, TopologyContext arg1, OutputCollector arg2) {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
