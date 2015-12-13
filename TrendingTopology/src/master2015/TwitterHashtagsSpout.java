@@ -1,14 +1,10 @@
 package master2015;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -56,7 +52,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 		ConsumerIterator<byte[], byte[]> it = streams.get(0).iterator();
 
-		ObjectMapper om = new ObjectMapper();
+		/*ObjectMapper om = new ObjectMapper();
 		JsonNode rootNode;
 
 		while (it.hasNext()) {
@@ -78,7 +74,8 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
+		}*/
+		collector.emit(Top3App.TWITTER_OUTSTREAM, new Values("ja","hola"));
 		// Blocking method
 		/*
 		 * while(it.hasNext()){ System.out.println("Received: "+new

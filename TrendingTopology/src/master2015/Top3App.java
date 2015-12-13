@@ -6,7 +6,7 @@ import java.util.Set;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
+import backtype.storm.utils.Utils;
 
 /**
  * TODO
@@ -22,7 +22,7 @@ import backtype.storm.tuple.Fields;
 public class Top3App {
 	public static String TOPOLOGY_ID;
 	public static final String SPOUT_ID = "TwitterSpout";
-	public static final String BOLT_ID = "TwitterSpout";
+	public static final String BOLT_ID = "TwitterBolt";
 	public static final String TWITTER_OUTSTREAM = "TwitterOutStream";
 	
 	public static void main(String[] args) {
@@ -63,7 +63,7 @@ public class Top3App {
 		//for(int i=0; i<languagesString.length; i++){
 			//builder.setBolt(Top3App.BOLT_ID+i, new TwitterHashtagsBolt(i,args[4])).fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 		
-		builder.setBolt(Top3App.BOLT_ID+i, new TwitterHashtagsBolt(i,args[4])).localOrShuffleGrouping(Top3App.TWITTER_OUTSTREAM);
+		builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt(i,args[4])).localOrShuffleGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM);
 		//}
 		
 		LocalCluster cluster = new LocalCluster();
@@ -77,6 +77,11 @@ public class Top3App {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
+		Utils.sleep(10000);
+		
+		cluster.killTopology(Top3App.TOPOLOGY_ID);
+		
+		cluster.shutdown();
 
 	}
 	
