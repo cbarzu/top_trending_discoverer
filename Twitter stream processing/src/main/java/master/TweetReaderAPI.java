@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.log4j.Logger;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.TwitterApi;
@@ -13,19 +15,19 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class TweetReader extends Thread {
+public class TweetReaderAPI extends Thread {
 
     private static final String STREAM_URI = "https://stream.twitter.com/1.1/statuses/sample.json";
-    Logger log = Logger.getLogger(TweetReader.class);
+    Logger log = Logger.getLogger(TweetReaderAPI.class);
 	private OAuthService service;
 	private Token accessToken;
+	private KafkaProducer producer;
 	
-	public TweetReader(){
-		service = new ServiceBuilder().provider(TwitterApi.class).apiKey("Y3VdpNIgRPorBp6uVpH2gvEZW").apiSecret("2eMBf7AsZdLELJeF19HVyo4OZgGMdpHbVejFc3PKdjtIGatUVA").build();
-		accessToken = new Token("4450825533-9drOs8cEBKnwBZqL07zpCg6tRMV3MIFq9Iox0U2","s82Wai5tZjmuXBR9gbRp5eVMWHNZheYieXAIyMZcXQwCt");
+	public TweetReaderAPI(KafkaProducer prod, String apiKey, String apiSecret, String tokenValue, String tokenSecret){
+		service = new ServiceBuilder().provider(TwitterApi.class).apiKey(apiKey).apiSecret(apiSecret).build();
+		accessToken = new Token(tokenValue,tokenSecret);
+		producer = prod;
 	}
 	
 	  public void run(){
@@ -49,6 +51,7 @@ public class TweetReader extends Thread {
 	            		
 	            String line;
 	            while ((line = reader.readLine()) != null) {
+	            	producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, line));
 	                System.out.println(line);
 	            }
 	        }
