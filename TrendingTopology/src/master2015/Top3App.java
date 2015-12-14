@@ -1,7 +1,7 @@
 package master2015;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -51,11 +51,11 @@ public class Top3App {
 		//builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt()).localOrShuffleGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM);
 
 		//Create as many bolts as languages
-		Set<String> languagesSet = new HashSet<String>();
+		List<String> languagesSet = new ArrayList<String>();
 		String[] languagesString = args[0].split(",");
 		
 		for(String l : languagesString){
-			languagesSet.add(l);
+			languagesSet.add("\""+l+"\"");
 		}
 		
 		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1],languagesSet));
