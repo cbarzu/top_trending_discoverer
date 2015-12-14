@@ -9,7 +9,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 
 public class TwitterApp {
 	
-	public static final String KAFKA_TOPIC = "TWITTER_GENERAL";
+	public static final String KAFKA_TOPIC = "TWITTER_GENERAL3";
 	public static void main(String[] args) {
 		
 		if(args.length!=7){

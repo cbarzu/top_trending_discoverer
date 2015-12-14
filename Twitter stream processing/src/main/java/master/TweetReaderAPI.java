@@ -54,7 +54,7 @@ public class TweetReaderAPI extends Thread {
 	            String line;
 	            while ((line = reader.readLine()) != null) {
 	            	producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, line));
-	                //System.out.println(line);
+	                System.out.println("emitting "+line);
 	            }
 	        }
 	        catch (IOException ioe){

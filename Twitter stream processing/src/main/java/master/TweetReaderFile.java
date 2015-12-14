@@ -29,6 +29,7 @@ public class TweetReaderFile {
 			// Lectura del fichero
 			String tweet;
 			while ((tweet = br.readLine()) != null) {
+                System.out.println("emitting "+tweet);
 				producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, tweet));
 			}
 			
