@@ -30,17 +30,18 @@ public class TwitterHashtagsBolt extends BaseRichBolt{
 	@Override
 	public void execute(Tuple input) {
 		String hashtagsList = (String)input.getValueByField(TwitterHashtagsSpout.HASHTAGS_FIELD);
+		System.out.println("------------------------------------> "+input.toString());
 		String[] hashtags = hashtagsList.split("#");
-		for(String ht : hashtags){
-			/*try {
+		/*for(String ht : hashtags){
+			try {
 				this.writer.write(ht);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}*/
+			}
 			
-			System.out.println(ht);
-		}
+			System.out.println("------------------------------------> "+ht);
+		}*/
 		/*Currency currencyID = (Currency) input.getValueByField(CurrencySpout.CURRENCYFIELDNAME);
 		double valueField = (Double) input.getValueByField(CurrencySpout.CURRENCYFIELDVALUE);
 		double rate = AvailableCurrencyUtils.getRate(currencyID);

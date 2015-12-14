@@ -77,7 +77,7 @@ public class Top3App {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
-		Utils.sleep(10000);
+		Utils.sleep(100000);
 		
 		cluster.killTopology(Top3App.TOPOLOGY_ID);
 		
