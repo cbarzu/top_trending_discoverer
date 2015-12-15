@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -157,6 +156,10 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 				for (JsonNode node : rootNode.get("entities").path("hashtags")) {
 					hashtagsList = hashtagsList + node.get("text").toString() + "#";
+				}
+				
+				if(!hashtagsList.isEmpty()){
+					hashtagsList = hashtagsList.substring(0, hashtagsList.length()-1);
 				}
 
 				String lang = rootNode.get("lang").toString();
