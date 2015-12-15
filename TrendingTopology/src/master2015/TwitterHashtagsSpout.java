@@ -74,9 +74,13 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 	}
 
 	/** TODO Remove method **/
-	private String getRandomTweet() {
-		int index = new Random().nextInt(this.tweets.size());
-		return this.tweets.get(index);
+	private String getNextTweet() {
+		if(this.tweets.size()>0){
+			String tweet = this.tweets.get(0);
+			this.tweets.remove(0);
+			return tweet;
+		}
+		return "";
 	}
 
 	/** TODO Remove method **/
@@ -137,7 +141,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 		// }
 		
 		/**TODO Change to Kafka consumer tweets **/
-		String tweet_json = this.getRandomTweet();
+		String tweet_json = this.getNextTweet();
 
 		if (tweet_json != null && !tweet_json.isEmpty()) { // tweet.isValid()
 			// String tweet_json = this.getMessage(msg);

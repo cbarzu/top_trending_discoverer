@@ -61,7 +61,7 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 		String hashtagsList = (String) input.getValueByField(TwitterHashtagsSpout.HASHTAGS_FIELD);
 		String lang = (String) input.getValueByField(TwitterHashtagsSpout.LANG_FIELD);
 		long timeStamp = Long.parseLong(((String) input.getValueByField(TwitterHashtagsSpout.TIMESTAMP_FIELD)).replaceAll("\"", ""));
-		//System.out.println("---> Storm BOLT [" + this.bolt_ID + "] receiving ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
+		System.out.println("---> Storm BOLT [" + this.bolt_ID + "] receiving ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
 
 		/* Configure window (only for the first message received) */
 		if(this.start_timestamp == -1){
