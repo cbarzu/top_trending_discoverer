@@ -60,8 +60,8 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 		String hashtagsList = (String) input.getValueByField(TwitterHashtagsSpout.HASHTAGS_FIELD);
 		String lang = (String) input.getValueByField(TwitterHashtagsSpout.LANG_FIELD);
-		long timeStamp = Long.parseLong((String) input.getValueByField(TwitterHashtagsSpout.TIMESTAMP_FIELD));
-		System.out.println("---> Storm BOLT [" + this.bolt_ID + "] receiving ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
+		long timeStamp = Long.parseLong(((String) input.getValueByField(TwitterHashtagsSpout.TIMESTAMP_FIELD)).replaceAll("\"", ""));
+		//System.out.println("---> Storm BOLT [" + this.bolt_ID + "] receiving ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
 
 		/* Configure window (only for the first message received) */
 		if(this.start_timestamp == -1){
@@ -71,12 +71,23 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 			this.start_timestamp = this.winAdvance * mult;
 			this.window_lower_bound = this.start_timestamp;
 			this.window_upper_bound = this.window_lower_bound + this.winSize;
-		}
-		
-		
-		if(timeStamp > this.window_lower_bound && this.start_timestamp < this.window_upper_bound){
 			
+			System.out.println("---> Storm BOLT [" + this.bolt_ID + "] setting window parameters [start_time: "+this.start_timestamp +", window bounds: ["+this.window_lower_bound +" - "+(this.window_upper_bound-1)+"]........");
 		}
+		
+		
+		if(timeStamp >= this.window_lower_bound && this.start_timestamp < this.window_upper_bound){
+			
+		} else if (timeStamp >= this.window_upper_bound){	//Update window bounds and generate file result for current bounds
+			//TODO write in file
+			
+			this.window_lower_bound = this.window_lower_bound+this.winAdvance;
+			this.window_upper_bound = this.window_lower_bound+this.winSize;
+			
+			System.out.println("---> Storm BOLT [" + this.bolt_ID + "] updating window bounds ["+this.window_lower_bound +" - "+(this.window_upper_bound-1)+"]........");
+		}
+		
+		
 		/** TODO Extraer hashtags */
 		/** TODO Ventana y top 3 */
 		/** TODO Escritura en fichero */

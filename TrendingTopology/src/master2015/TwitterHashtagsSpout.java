@@ -162,7 +162,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 				for (String validLanguage : this.languagesList) {
 					if (validLanguage.equals(lang)) {
 						Values value = new Values(timeStamp, lang, hashtagsList);
-						System.out.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] emiting ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
+						//System.out.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] emiting ["+timeStamp +" - "+lang +" - "+hashtagsList+"]........");
 						collector.emit(Top3App.TWITTER_OUTSTREAM, value);
 					}
 				}

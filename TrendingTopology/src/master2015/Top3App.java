@@ -103,8 +103,9 @@ public class Top3App {
 			System.exit(-3);		
 		}
 		
-		long windowSize = Long.parseLong(windowParams[0]);
-		long windowAdvance = Long.parseLong(windowParams[1]);
+		//From seconds to mseconds
+		long windowSize = Long.parseLong(windowParams[0])*1000;	
+		long windowAdvance = Long.parseLong(windowParams[1])*1000;
 
 		/** Setting up Storm Topology **/
 
