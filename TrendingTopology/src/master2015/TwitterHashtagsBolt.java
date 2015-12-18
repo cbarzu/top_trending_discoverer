@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,22 +86,25 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 					+ (this.window_upper_bound - 1) + "]........");
 		}
 
-		//Get hashtags
+		// Get hashtags
 		List<String> hashtagList = new ArrayList<String>();
 		String[] hashtags = hashtagsString.split("#");
-		for(int i=0;i<hashtags.length;i++){
+		for (int i = 0; i < hashtags.length; i++) {
 			hashtagList.add(hashtags[i]);
 		}
 
 		// If the tweet is in the current window
-		if (timeStamp >= this.window_lower_bound && this.start_timestamp < this.window_upper_bound) {
+		if (timeStamp >= this.window_lower_bound && timeStamp < this.window_upper_bound) {
 			for (String hashtag : hashtagList) {
 				// If the hashtag is already in the map
-				if (this.hashtagsCount.containsKey(hashtag)) {
-					this.hashtagsCount.put(hashtag, this.hashtagsCount.get(hashtag) + 1);
-				} else { // If it's the first arrival of the hashtag, put with
-							// freq. 1
-					this.hashtagsCount.put(hashtag, new Long(1));
+				if (hashtag != null && !hashtag.isEmpty()) {
+					if (this.hashtagsCount.containsKey(hashtag)) {
+						this.hashtagsCount.put(hashtag, this.hashtagsCount.get(hashtag) + 1);
+					} else { // If it's the first arrival of the hashtag, put
+								// with
+								// freq. 1
+						this.hashtagsCount.put(hashtag, new Long(1));
+					}
 				}
 			}
 		} else if (timeStamp >= this.window_upper_bound) {
@@ -117,21 +119,21 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 				// Write in the file
 				File file = new File(this.filePath + "/" + lang + "_12.log");
 
-				try {
-					BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+				try {	    	        
+					BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
 					String tops = "";
 					for (String top : top3) {
 						tops = tops + "," + top;
 					}
 
-					writer.write(this.window_lower_bound + "," + lang + tops);
+					writer.write(this.window_lower_bound + "," + lang + tops+"\n");
 
 					writer.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 			this.hashtagsCount.clear();
 
 			System.out.println("---> Storm BOLT [" + this.bolt_ID + "] updating window bounds ["
@@ -150,22 +152,21 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 		outputDeclarer.declareStream(Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 	}
 
-	@SuppressWarnings({ "static-access", "unchecked", "rawtypes" })
+	@SuppressWarnings({ "static-access" })
 	List<String> getTop3() {
 		List<String> result = new ArrayList<String>();
 
 		if (!this.hashtagsCount.isEmpty()) {
-			this.hashtagsCount = (Map<String, Long>) this.entriesSortedByValues(this.hashtagsCount);
-			Iterator it = this.hashtagsCount.entrySet().iterator();
-			while (it.hasNext() && result.size() < 3) {
-				Map.Entry pair = (Map.Entry) it.next();
-				String top = pair.getKey() + "," + pair.getValue();
+			List<Entry<String, Long>> orderedResults = (List<Entry<String, Long>>) this
+					.entriesSortedByValues(this.hashtagsCount);
+
+			for (int i = 0; (i < orderedResults.size() && i < 3); i++) {
+				String top = orderedResults.get(i).getKey() + "," + orderedResults.get(i).getValue();
 				result.add(top);
 			}
-
-			// If there are less than 3 different hashtags
-			if (result.size() < 3) {
-				for (int i = 0; i < (3 - result.size()); i++) {
+			if (orderedResults.size() < 3) { // If there are less than 3
+												// different hashtags
+				for (int i = 0; i < (3 - orderedResults.size()); i++) {
 					result.add("null,0");
 				}
 			}

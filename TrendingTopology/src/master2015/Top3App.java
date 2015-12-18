@@ -5,6 +5,9 @@ import java.util.List;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
@@ -94,18 +97,18 @@ public class Top3App {
 			langList.add("\"" + lang + "\""); // Lang within " " characters for
 												// the json format
 		}
-		
-		//Window parameters
+
+		// Window parameters
 		String[] windowParams = args[2].split(",");
-		if(windowParams.length != 2){
+		if (windowParams.length != 2) {
 			System.err.println("****** ERROR ****** Wrong window parameters. Expected:"
-					+ "[size,advance] in seconds, got "+args[2]);
-			System.exit(-3);		
+					+ "[size,advance] in seconds, got " + args[2]);
+			System.exit(-3);
 		}
-		
-		//From seconds to mseconds
-		long windowSize = Long.parseLong(windowParams[0])*1000;	
-		long windowAdvance = Long.parseLong(windowParams[1])*1000;
+
+		// From seconds to mseconds
+		long windowSize = Long.parseLong(windowParams[0]) * 1000;
+		long windowAdvance = Long.parseLong(windowParams[1]) * 1000;
 
 		/** Setting up Storm Topology **/
 
@@ -114,39 +117,45 @@ public class Top3App {
 
 		System.out.println("\n ---> Creating Storm Spouts [" + Top3App.SPOUT_ID + "] ........");
 		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1], langList));
-		
 
 		/** TODO Create as many bolts as languages */
 		/** TODO Change localOrShuffleGrouping to fieldsGrouping */
 
-		int i=0;
-		//for (int i = 0; i < langList.size(); i++) {
-			//builder.setBolt(Top3App.BOLT_ID +"_"+i, new TwitterHashtagsBolt(Top3App.BOLT_ID +"_"+i, args[4])).fieldsGrouping(Top3App.SPOUT_ID,
-			//		new Fields(TwitterHashtagsSpout.LANG_FIELD));
+		for (int j = 0; j < langList.size(); j++) {
+			builder.setBolt(Top3App.BOLT_ID + "_" + j,
+					new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + j, args[4], windowSize, windowAdvance))
+					.fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 
-			System.out.println("\n ---> Creating Storm Bolts [" + Top3App.BOLT_ID +"_"+i + "] ........");
-			builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt(Top3App.BOLT_ID +"_"+i, args[4], windowSize, windowAdvance))
-					.localOrShuffleGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM);
-		//}
+			// int i=0;
+			// System.out.println("\n ---> Creating Storm Bolts [" +
+			// Top3App.BOLT_ID + "_" + i + "] ........");
+			// builder.setBolt(Top3App.BOLT_ID,
+			// new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + i, args[4],
+			// windowSize, windowAdvance))
+			// .localOrShuffleGrouping(Top3App.SPOUT_ID,
+			// Top3App.TWITTER_OUTSTREAM);
+		}
 
-		/** TODO Change local cluster for StormSubmitter */
+		if (args[1].toLowerCase().contains("localhost")) {
+			System.out
+					.println("\n ---> Executing topology [" + Top3App.TOPOLOGY_ID + "] in local cluster ........\n\n");
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
 
-		System.out.println("\n ---> Submiting topology [" + Top3App.TOPOLOGY_ID + "] to cluster ........");
-		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
-
-		Utils.sleep(100000);
-		cluster.killTopology(Top3App.TOPOLOGY_ID);
-		cluster.shutdown();
-
-		// try {
-		// StormSubmitter.submitTopology(Top3App.TOPOLOGY_ID, new Config(),
-		// builder.createTopology());
-		// } catch (AlreadyAliveException e) {
-		// e.printStackTrace();
-		// } catch (InvalidTopologyException e) {
-		// e.printStackTrace();
-		// }
+			Utils.sleep(1000000);
+			cluster.killTopology(Top3App.TOPOLOGY_ID);
+			cluster.shutdown();
+		} else {
+			System.out.println("\n ---> Submiting topology [" + Top3App.TOPOLOGY_ID + "] to cluster [" + args[1]
+					+ "]........\n\n");
+			try {
+				StormSubmitter.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
+			} catch (AlreadyAliveException e) {
+				e.printStackTrace();
+			} catch (InvalidTopologyException e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 
