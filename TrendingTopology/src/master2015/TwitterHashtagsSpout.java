@@ -53,7 +53,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 	private ConsumerIterator consumerIterator;
 
 	/** Kafka Consumer Topic **/
-	public static final String KAFKA_TOPIC = "TWITTER_GENERAL1";
+	public static final String KAFKA_TOPIC = "TWITTER_GENERAL";
 
 	/** Storm Spout collector **/
 	private SpoutOutputCollector collector;
