@@ -13,15 +13,6 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 
 /**
- * TODO
- * 1. Configurar fichero server.properties
- * 2. Donde colocar el kafka
- * 3. Windows
- * 4. Reparto a los bolts (por lan??)
- *
- */
-
-/**
  * Top3App: Storm topology builder.
  * 
  * Creates and submits the storm topology.
@@ -111,28 +102,20 @@ public class Top3App {
 		long windowAdvance = Long.parseLong(windowParams[1]) * 1000;
 
 		/** Setting up Storm Topology **/
-
 		System.out.println("\n ---> Creating topology [" + Top3App.TOPOLOGY_ID + "] ........");
 		TopologyBuilder builder = new TopologyBuilder();
 
-		System.out.println("\n ---> Creating Storm Spouts [" + Top3App.SPOUT_ID + "] ........");
+		//Create one spout
+		System.out.println("\n ---> Creating Storm Spout [" + Top3App.SPOUT_ID + "] ........");
 		builder.setSpout(Top3App.SPOUT_ID, new TwitterHashtagsSpout(args[1], langList));
 
-		/** TODO Create as many bolts as languages */
-		/** TODO Change localOrShuffleGrouping to fieldsGrouping */
-
+		//Create as many bolts as different languages we have to analyze (fieldsGrouping by lang)
+		System.out.println("\n ---> Creating Storm Bolts ("+langList.size()+") [" + Top3App.BOLT_ID + "] ........");
 		builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt(Top3App.BOLT_ID, args[4], windowSize, windowAdvance),langList.size())
 				.fieldsGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 
-		// int i=0;
-		// System.out.println("\n ---> Creating Storm Bolts [" +
-		// Top3App.BOLT_ID + "_" + i + "] ........");
-		// builder.setBolt(Top3App.BOLT_ID,
-		// new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + i, args[4],
-		// windowSize, windowAdvance))
-		// .localOrShuffleGrouping(Top3App.SPOUT_ID,
-		// Top3App.TWITTER_OUTSTREAM);
 
+		/** Submits the topology (or local mode) **/
 		if (args[1].toLowerCase().contains("localhost")) {
 			System.out
 					.println("\n ---> Executing topology [" + Top3App.TOPOLOGY_ID + "] in local cluster ........\n\n");

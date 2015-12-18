@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.TwitterApi;
 import org.scribe.model.OAuthRequest;
@@ -25,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
@@ -44,7 +42,7 @@ import kafka.message.Message;
  * @author Javier Villar Gil (javier.villar.gil@alumnos.upm.es)
  *
  */
-public class TwitterHashtagsSpout extends BaseRichSpout{
+public class TwitterHashtagsSpout extends BaseRichSpout {
 	/** Zookeeper url for the Kafka Consumer **/
 	private String zookeeper_url;
 
@@ -86,16 +84,6 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 	}
 
 	/** TODO Remove method **/
-	private String getNextTweet() {
-		if (this.tweets.size() > 0) {
-			String tweet = this.tweets.get(0);
-			this.tweets.remove(0);
-			return tweet;
-		}
-		return "";
-	}
-
-	/** TODO Remove method **/
 	private void readTweetsFromFile() {
 		try {
 			File archivo = new File("/home/javiervillargil/Desktop/prueba.txt");
@@ -132,13 +120,12 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 		// consumerMap.get(TwitterHashtagsSpout.KAFKA_TOPIC);
 		// consumerIterator = streams.get(0).iterator();
 
-		
+		/** TODO Remove this ( Twitter API) **/
 		OAuthService service = new ServiceBuilder().provider(TwitterApi.class).apiKey("Y3VdpNIgRPorBp6uVpH2gvEZW")
 				.apiSecret("2eMBf7AsZdLELJeF19HVyo4OZgGMdpHbVejFc3PKdjtIGatUVA").build();
 		Token accessToken = new Token("4450825533-9drOs8cEBKnwBZqL07zpCg6tRMV3MIFq9Iox0U2",
 				"s82Wai5tZjmuXBR9gbRp5eVMWHNZheYieXAIyMZcXQwCt");
-		
-		
+
 		OAuthRequest request = new OAuthRequest(Verb.POST, STREAM_URI);
 		request.addHeader("version", "HTTP/1.1");
 		request.addHeader("host", "stream.twitter.com");
@@ -147,17 +134,10 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 		// request.addBodyParameter("track", "java,heroku,twitter"); // Set
 		// keywords you'd like to track here
 		service.signRequest(accessToken, request);
-		
-		response = request.send();
-		
-		reader = new BufferedReader(new InputStreamReader(response.getStream()));
-	}
 
-	private String getMessage(Message message) {
-		ByteBuffer buffer = message.payload();
-		byte[] bytes = new byte[buffer.remaining()];
-		buffer.get(bytes);
-		return new String(bytes);
+		response = request.send();
+
+		reader = new BufferedReader(new InputStreamReader(response.getStream()));
 	}
 
 	@Override
@@ -173,12 +153,7 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 
 		///////////////////////////////////////////////////////////////
 
-
-		
-		
-
 		// Create a reader to read Twitter's stream
-		
 
 		try {
 			String line;
@@ -210,58 +185,22 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 						String timeStamp = rootNode.get("timestamp_ms").toString();
 
 						for (String validLanguage : this.languagesList) {
-							if (validLanguage.equals(lang)) {
+							if (validLanguage.equals(lang) && !hashtagsList.isEmpty()) {
 								Values value = new Values(timeStamp, lang, hashtagsList);
-								// System.out.println("---> Storm SPOUT [" +
-								// Top3App.SPOUT_ID + "] emiting ["+timeStamp +"
-								// - "+lang +" - "+hashtagsList+"]........");
+								System.out.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] emiting [" + timeStamp
+										+ "- " + lang + " - " + hashtagsList + "]........");
 								collector.emit(Top3App.TWITTER_OUTSTREAM, value);
 							}
 						}
 					} catch (IOException e) {
-						e.printStackTrace();
+						System.err.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] ERROR: "+e.getMessage());
 					}
 
 				}
 			}
 		} catch (Exception e) {
-
+			System.err.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] ERROR: "+e.getMessage());
 		}
-		/////////////////////////////////////////////////////////////////
-
-		/** TODO Change to Kafka consumer tweets **/
-		/*
-		 * String tweet_json = this.getNextTweet();
-		 * 
-		 * if (tweet_json != null && !tweet_json.isEmpty()) { // tweet.isValid()
-		 * // String tweet_json = this.getMessage(msg);
-		 * 
-		 * //JSON parsing ObjectMapper om = new ObjectMapper(); JsonNode
-		 * rootNode;
-		 * 
-		 * try { rootNode = om.readValue(tweet_json, JsonNode.class);
-		 * 
-		 * String hashtagsList = "";
-		 * 
-		 * for (JsonNode node : rootNode.get("entities").path("hashtags")) {
-		 * hashtagsList = hashtagsList + node.get("text").toString() + "#"; }
-		 * 
-		 * if(!hashtagsList.isEmpty()){ hashtagsList = hashtagsList.substring(0,
-		 * hashtagsList.length()-1); }
-		 * 
-		 * String lang = rootNode.get("lang").toString();
-		 * 
-		 * String timeStamp = rootNode.get("timestamp_ms").toString();
-		 * 
-		 * for (String validLanguage : this.languagesList) { if
-		 * (validLanguage.equals(lang)) { Values value = new Values(timeStamp,
-		 * lang, hashtagsList); //System.out.println("---> Storm SPOUT [" +
-		 * Top3App.SPOUT_ID + "] emiting ["+timeStamp +" - "+lang +" - "
-		 * +hashtagsList+"]........"); collector.emit(Top3App.TWITTER_OUTSTREAM,
-		 * value); } } } catch (IOException e) { e.printStackTrace(); }
-		 * 
-		 * }
-		 */
 	}
 
 	@Override
@@ -269,6 +208,13 @@ public class TwitterHashtagsSpout extends BaseRichSpout{
 		declarer.declareStream(Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.TIMESTAMP_FIELD,
 				TwitterHashtagsSpout.LANG_FIELD, TwitterHashtagsSpout.HASHTAGS_FIELD));
 
+	}
+	
+	private String getMessage(Message message) {
+		ByteBuffer buffer = message.payload();
+		byte[] bytes = new byte[buffer.remaining()];
+		buffer.get(bytes);
+		return new String(bytes);
 	}
 
 	private ConsumerConfig createConsumerConfig(String aZookeeper, String aGroupId) {
