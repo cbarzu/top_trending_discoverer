@@ -121,20 +121,17 @@ public class Top3App {
 		/** TODO Create as many bolts as languages */
 		/** TODO Change localOrShuffleGrouping to fieldsGrouping */
 
-		for (int j = 0; j < langList.size(); j++) {
-			builder.setBolt(Top3App.BOLT_ID + "_" + j,
-					new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + j, args[4], windowSize, windowAdvance))
-					.fieldsGrouping(Top3App.SPOUT_ID, new Fields(TwitterHashtagsSpout.LANG_FIELD));
+		builder.setBolt(Top3App.BOLT_ID, new TwitterHashtagsBolt(Top3App.BOLT_ID, args[4], windowSize, windowAdvance),langList.size())
+				.fieldsGrouping(Top3App.SPOUT_ID, Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.LANG_FIELD));
 
-			// int i=0;
-			// System.out.println("\n ---> Creating Storm Bolts [" +
-			// Top3App.BOLT_ID + "_" + i + "] ........");
-			// builder.setBolt(Top3App.BOLT_ID,
-			// new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + i, args[4],
-			// windowSize, windowAdvance))
-			// .localOrShuffleGrouping(Top3App.SPOUT_ID,
-			// Top3App.TWITTER_OUTSTREAM);
-		}
+		// int i=0;
+		// System.out.println("\n ---> Creating Storm Bolts [" +
+		// Top3App.BOLT_ID + "_" + i + "] ........");
+		// builder.setBolt(Top3App.BOLT_ID,
+		// new TwitterHashtagsBolt(Top3App.BOLT_ID + "_" + i, args[4],
+		// windowSize, windowAdvance))
+		// .localOrShuffleGrouping(Top3App.SPOUT_ID,
+		// Top3App.TWITTER_OUTSTREAM);
 
 		if (args[1].toLowerCase().contains("localhost")) {
 			System.out

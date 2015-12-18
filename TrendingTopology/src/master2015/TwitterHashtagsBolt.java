@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
@@ -30,7 +31,7 @@ import backtype.storm.tuple.Tuple;
  *
  */
 @SuppressWarnings("serial")
-public class TwitterHashtagsBolt extends BaseRichBolt {
+public class TwitterHashtagsBolt extends BaseRichBolt{
 	/** Storm Bolt ID **/
 	private String bolt_ID;
 
@@ -149,7 +150,8 @@ public class TwitterHashtagsBolt extends BaseRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer outputDeclarer) {
-		outputDeclarer.declareStream(Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.LANG_FIELD));
+		outputDeclarer.declareStream(Top3App.TWITTER_OUTSTREAM, new Fields(TwitterHashtagsSpout.TIMESTAMP_FIELD,
+				TwitterHashtagsSpout.LANG_FIELD, TwitterHashtagsSpout.HASHTAGS_FIELD));
 	}
 
 	@SuppressWarnings({ "static-access" })

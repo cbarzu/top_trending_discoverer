@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
@@ -43,7 +44,7 @@ import kafka.message.Message;
  * @author Javier Villar Gil (javier.villar.gil@alumnos.upm.es)
  *
  */
-public class TwitterHashtagsSpout extends BaseRichSpout {
+public class TwitterHashtagsSpout extends BaseRichSpout{
 	/** Zookeeper url for the Kafka Consumer **/
 	private String zookeeper_url;
 
