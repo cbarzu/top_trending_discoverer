@@ -27,7 +27,7 @@ import org.scribe.oauth.OAuthService;
  */
 public class TweetReaderAPI extends Thread {
 
-	private static final String STREAM_URI = "https://stream.twitter.com/1.1/statuses/sample.json";
+	private static final String STREAM_URI = "https://stream.twitter.com/1.1/statuses/filter.json";
 	Logger log = Logger.getLogger(TweetReaderAPI.class);
 	private OAuthService service;
 	private Token accessToken;
@@ -50,6 +50,7 @@ public class TweetReaderAPI extends Thread {
 			OAuthRequest request = new OAuthRequest(Verb.POST, STREAM_URI);
 			request.addHeader("version", "HTTP/1.1");
 			request.addHeader("host", "stream.twitter.com");
+			request.addBodyParameter("track", "car,elecciones,football,please,android,romania,revelion,navidad");
 			request.setConnectionKeepAlive(true);
 			request.addHeader("user-agent", "Twitter Stream Reader");
 			service.signRequest(accessToken, request);

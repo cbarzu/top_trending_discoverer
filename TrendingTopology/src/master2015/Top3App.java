@@ -130,6 +130,7 @@ public class Top3App {
 					+ "]........\n\n");
 			try {
 				StormSubmitter.submitTopology(Top3App.TOPOLOGY_ID, new Config(), builder.createTopology());
+				
 			} catch (AlreadyAliveException e) {
 				e.printStackTrace();
 			} catch (InvalidTopologyException e) {
