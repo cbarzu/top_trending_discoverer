@@ -66,7 +66,6 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 	private List<String> languagesList;
 
 	public static Logger LOG = LoggerFactory.getLogger(TwitterHashtagsSpout.class);
-	private static final String STREAM_URI = "https://stream.twitter.com/1.1/statuses/sample.json";
 
 	public TwitterHashtagsSpout(String zookeeper_url, List<String> languages) {
 		this.zookeeper_url = zookeeper_url;
@@ -97,10 +96,11 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 	@Override
 	public void nextTuple() {
+		System.err.println("Hay siguiente mensaje: " + consumerIterator.hasNext());
 		if(consumerIterator.hasNext()){
 			MessageAndMetadata<byte[], byte[]> data = consumerIterator.next();
 			String tweet_json = new String(data.message());
-			//System.err.println(tweet_json);
+			System.err.println(tweet_json);
 			//LOG.info(tweet_json);
 
 			// JSON parsing
@@ -111,26 +111,23 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 				rootNode = om.readValue(tweet_json, JsonNode.class);
 
 				String hashtagsList = "";
-
-				for (JsonNode node : rootNode.get("entities").path("hashtags")) {
-					System.err.println(hashtagsList);
-					hashtagsList = hashtagsList + "#"+ node.get("text").toString();
-				}
-
-				if (!hashtagsList.isEmpty()) {
-					hashtagsList = hashtagsList.substring(0, hashtagsList.length() - 1);
-				}
-
-				String lang = rootNode.get("lang").toString();
-
-				String timeStamp = rootNode.get("timestamp_ms").toString();
-
-				for (String validLanguage : this.languagesList) {
-					if (validLanguage.equals(lang) && !hashtagsList.isEmpty()) {
-						Values value = new Values(timeStamp, lang, hashtagsList);
-						System.out.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] emiting [" + timeStamp
-								+ "- " + lang + " - " + hashtagsList + "]........");
-						collector.emit(Top3App.TWITTER_OUTSTREAM, value);
+				if (rootNode.has("created_at") || rootNode.has("\"created_at\"")){
+					System.err.println("Inside created_at with value:" + rootNode.get("created_at"));
+					for (JsonNode node : rootNode.get("entities").path("hashtags")) {
+						System.err.println(hashtagsList);
+						hashtagsList = hashtagsList + "#"+ node.get("text").asText();
+					}
+					String lang = rootNode.get("lang").asText();
+	
+					String timeStamp = rootNode.get("timestamp_ms").asText();
+					System.err.println("Lang is :" +lang);
+					for (String validLanguage : this.languagesList) {
+						if (validLanguage.contains(lang)) {
+							Values value = new Values(timeStamp, lang, hashtagsList);
+							System.err.println("---> Storm SPOUT [" + Top3App.SPOUT_ID + "] emiting [" + timeStamp
+									+ "- " + lang + " - " + hashtagsList + "]........");
+							collector.emit(Top3App.TWITTER_OUTSTREAM, value);
+						}
 					}
 				}
 			} catch (IOException | NullPointerException e) {
@@ -148,12 +145,6 @@ public class TwitterHashtagsSpout extends BaseRichSpout {
 
 	}
 	
-	private String getMessage(Message message) {
-		ByteBuffer buffer = message.payload();
-		byte[] bytes = new byte[buffer.remaining()];
-		buffer.get(bytes);
-		return new String(bytes);
-	}
 
 	private ConsumerConfig createConsumerConfig(String aZookeeper, String aGroupId) {
 

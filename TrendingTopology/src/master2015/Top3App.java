@@ -85,7 +85,7 @@ public class Top3App {
 		String[] argLang = args[0].split(",");
 
 		for (String lang : argLang) {
-			langList.add("\"" + lang + "\""); // Lang within " " characters for
+			langList.add(lang); // Lang within " " characters for
 												// the json format
 		}
 

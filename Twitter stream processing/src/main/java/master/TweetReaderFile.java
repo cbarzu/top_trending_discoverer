@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -34,13 +35,23 @@ public class TweetReaderFile {
 			File archivo = new File(filePath);
 			FileReader fr = new FileReader(archivo);
 			BufferedReader br = new BufferedReader(fr);
+			
 
 			// Tweet file read
 			String tweet;
 			while ((tweet = br.readLine()) != null) {
+				try {
+					producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, tweet)).get();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				System.out
-						.println("---> [" + new Date().toString() + "]Kafka producer: emitting a new tweet :" + tweet);
-				producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, tweet));
+				.println("---> [" + new Date().toString() + "]Kafka producer: emitting a new tweet :" + tweet);
+				
 			}
 
 			if (null != fr) {

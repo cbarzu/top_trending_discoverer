@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -61,7 +62,12 @@ public class TweetReaderAPI extends Thread {
 
 			String line;
 			while ((line = reader.readLine()) != null) {
-				producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, line));
+				try {
+					producer.send(new ProducerRecord<String, String>(TwitterApp.KAFKA_TOPIC, line)).get();
+				} catch (InterruptedException | ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				System.out.println("---> [" + new Date().toString() + "]Kafka producer: emitting a new tweet: " + line);
 			}
 		} catch (IOException ioe) {
